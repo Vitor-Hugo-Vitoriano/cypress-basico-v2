@@ -1,236 +1,264 @@
 /// <reference types="Cypress" />
 
-describe('Central de Atendimento ao Cliente TAT', function() {
-        beforeEach(function() {
-        cy.visit('./src/index.html')
-    })    
+describe("Central de Atendimento ao Cliente TAT", function () {
+  beforeEach(function () {
+    cy.visit("./src/index.html");
+  });
 
-        it('verifica o título da aplicação', function() {
-        cy.title().should('be.equal','Central de Atendimento ao Cliente TAT')
-    })
+  it("verifica o título da aplicação", function () {
+    cy.title().should("be.equal", "Central de Atendimento ao Cliente TAT");
+  });
 
-        it('preenche os campos obrigatórios e envia o formulário', function () { 
+  it("preenche os campos obrigatórios e envia o formulário", function () {
+    const longtext = Cypress._.repeat("abcdefghijklmnopqrstuvwxyz", 10);
 
-            const longtext = 'teste, teste, teste, teste, teste, teste, teste, teste, teste, teste, teste, teste, teste, teste, teste, teste,'
-         
-            cy.get('#firstName').type('vitor hugo')
-            cy.get('#lastName').type('vitoriano')
-            cy.get('#email').type('vitorianovitoriano5@gmail.com')
-            cy.get('#open-text-area').type(longtext , { delay : 0})
-            cy.get('button[type="submit"]').click()
+    cy.get("#firstName").type("vitor hugo");
+    cy.get("#lastName").type("vitoriano");
+    cy.get("#email").type("vitorianovitoriano5@gmail.com");
+    cy.get("#open-text-area").type(longtext, { delay: 0 });
+    cy.get('button[type="submit"]').click();
 
-            cy.get('.success').should('be.visible')
-    })
+    cy.get(".success").should("be.visible");
+  });
 
-        it('exibe mensagem de erro ao submeter o formulário com um email com formatação inválida', function () {
+  it("exibe mensagem de erro ao submeter o formulário com um email com formatação inválida", function () {
+    cy.get("#firstName").type("vitor hugo");
+    cy.get("#lastName").type("vitoriano");
+    cy.get("#email").type("vitorianovitoriano5@gmail,com");
+    cy.get("#open-text-area").type("teste");
+    cy.get('button[type="submit"]').click();
 
-            cy.get('#firstName').type('vitor hugo')
-            cy.get('#lastName').type('vitoriano')
-            cy.get('#email').type('vitorianovitoriano5@gmail,com')
-            cy.get('#open-text-area').type('teste')
-            cy.get('button[type="submit"]').click()
+    cy.get(".error").should("be.visible");
+  });
 
-            cy.get('.error').should('be.visible')
- 
-    })
+  it("campo telefone continua vazio quando preenchido com valor não-numérico", function () {
+    cy.get("#phone").type("abcdefghij").should("have.value", "");
+  });
 
-        it('campo telefone continua vazio quando preenchido com valor não-numérico', function () {
+  it("exibe mensagem de erro quando o telefone se torna obrigatório mas não é preenchido antes do envio do formulário", function () {
+    cy.get("#firstName").type("vitor hugo");
+    cy.get("#lastName").type("vitoriano");
+    cy.get("#email").type("vitorianovitoriano5@gmail.com");
+    cy.get("#phone-checkbox").click();
+    cy.get("#open-text-area").type("teste");
+    cy.get('button[type="submit"]').click();
 
-            cy.get('#phone')
-              .type('abcdefghij')
-              .should('have.value', '')
+    cy.get(".error").should("be.visible");
+  });
 
-    })
+  it("preenche e limpa os campos nome, sobrenome, email e telefone", function () {
+    cy.get("#firstName")
+      .type("vitor hugo")
+      .should("have.value", "vitor hugo")
+      .clear()
+      .should("have.value", "");
+    cy.get("#lastName")
+      .type("vitoriano")
+      .should("have.value", "vitoriano")
+      .clear()
+      .should("have.value", "");
+    cy.get("#email")
+      .type("vitorianovitorhugo5@gmail.com")
+      .should("have.value", "vitorianovitorhugo5@gmail.com")
+      .clear()
+      .should("have.value", "");
+    cy.get("#open-text-area")
+      .type("teste vitor hugo vitoriano")
+      .should("have.value", "teste vitor hugo vitoriano")
+      .clear()
+      .should("have.value", "");
+    cy.get("#phone")
+      .type("169971871145")
+      .should("have.value", "169971871145")
+      .clear()
+      .should("have.value", "");
+  });
 
-        it('exibe mensagem de erro quando o telefone se torna obrigatório mas não é preenchido antes do envio do formulário', function() {
+  it("exibe mensagem de erro ao submeter o formulário sem preencher os campos obrigatórios", function () {
+    cy.get('button[type="submit"]').click();
 
-            cy.get('#firstName').type('vitor hugo')
-            cy.get('#lastName').type('vitoriano')
-            cy.get('#email').type('vitorianovitoriano5@gmail.com')
-            cy.get('#phone-checkbox').click()
-            cy.get('#open-text-area').type('teste')
-            cy.get('button[type="submit"]').click()
-            
-            cy.get('.error').should('be.visible')
- 
-    })
+    cy.get(".error").should("be.visible");
+  });
 
-        it('preenche e limpa os campos nome, sobrenome, email e telefone', function () {
-            
-             cy.get('#firstName')
-             .type('vitor hugo')
-             .should('have.value','vitor hugo')
-             .clear()
-             .should('have.value','')
-             cy.get('#lastName')
-             .type('vitoriano')
-             .should('have.value','vitoriano')
-             .clear()
-             .should('have.value','')
-             cy.get('#email')
-             .type('vitorianovitorhugo5@gmail.com')
-             .should('have.value','vitorianovitorhugo5@gmail.com')
-             .clear()
-             .should('have.value','') 
-             cy.get('#open-text-area')
-             .type('teste vitor hugo vitoriano')
-             .should('have.value','teste vitor hugo vitoriano')
-             .clear()
-             .should('have.value','')
-             cy.get('#phone')
-             .type('169971871145')
-             .should('have.value','169971871145')
-             .clear()
-             .should('have.value','')
-    })
+  it("envia o formuário com sucesso usando um comando customizado", function () {
+    cy.fillMandatoryFieldsAndSubmit();
 
-        it('exibe mensagem de erro ao submeter o formulário sem preencher os campos obrigatórios',function() {
+    cy.get(".success").should("be.visible");
+  });
 
-            cy.get('button[type="submit"]').click()
+  it("teste para ver como funciona cy.contains", function () {
+    const longtext =
+      "teste, teste, teste, teste, teste, teste, teste, teste, teste, teste, teste, teste, teste, teste, teste, teste,";
 
-            cy.get('.error').should('be.visible')
+    cy.get("#firstName").type("vitor hugo");
+    cy.get("#lastName").type("vitoriano");
+    cy.get("#email").type("vitorianovitoriano5@gmail.com");
+    cy.get("#open-text-area").type(longtext, { delay: 0 });
+    cy.contains("button", "Enviar").click();
 
+    cy.get(".success").should("be.visible");
+  });
 
+  it("seleciona um produto (Mentoria) por seu texto", function () {
+    cy.get("#product").select("Mentoria").should("have.value", "mentoria");
+  });
 
-    })
+  it("seleciona um produto (youtube) por seu valor (value)", function () {
+    cy.get("#product").select("youtube").should("have.value", "youtube");
+  });
 
-        it('envia o formuário com sucesso usando um comando customizado', function() {
+  it("seleciona um produto (Blog) por seu índice", function () {
+    cy.get("#product").select(2).should("have.value", "cursos");
+  });
 
-            cy.fillMandatoryFieldsAndSubmit()
+  it('marca o tipo de atendimento "Feedback"', function () {
+    cy.get('input[type="radio"][value="feedback"]')
+      .check()
+      .should("be.checked", "feedback");
+  });
 
-            cy.get('.success').should('be.visible')
+  it("marca cada tipo de atendimento", function () {
+    cy.get('input[type="radio"]')
+      .should("have.length", 3)
+      .each(function ($radio) {
+        cy.wrap($radio).check();
+        cy.wrap($radio).should("be.checked");
+      });
+  });
 
-    })
+  it("marca ambos checkboxes, depois desmarca o último", function () {
+    cy.get('input[type="checkbox"]')
+      .check()
+      .should("be.checked")
+      .last()
+      .uncheck()
+      .should("not.be.checked");
+  });
 
-        it('teste para ver como funciona cy.contains', function (){
+  it("exibe mensagem de erro quando o telefone se torna obrigatório mas não é preenchido antes do envio do formulário", function () {
+    // cy.get('input[type="checkbox"][value="phone"]')
+    cy.get("#phone-checkbox").click().check();
+    cy.contains("button", "Enviar").click();
+    cy.get(".error").should("be.visible");
+  });
+  it("seleciona um arquivo da pasta fixtures", function () {
+    // cy.get('input[type="file"]#file-upload')
+    cy.get('input[type="file"]')
+      .should("not.have.value")
+      .selectFile("cypress/fixtures/example.json")
+      .should(function ($input) {
+        // console.log($input)
+        expect($input[0].files[0].name).to.equal("example.json");
+      });
+  });
 
-            const longtext = 'teste, teste, teste, teste, teste, teste, teste, teste, teste, teste, teste, teste, teste, teste, teste, teste,'
-         
-            cy.get('#firstName').type('vitor hugo')
-            cy.get('#lastName').type('vitoriano')
-            cy.get('#email').type('vitorianovitoriano5@gmail.com')
-            cy.get('#open-text-area').type(longtext , { delay : 0})
-            cy.contains('button', 'Enviar').click()
+  it("seleciona um arquivo simulando um drag-and-drop", function () {
+    cy.get('input[type="file"]')
+      .should("not.have.value")
+      .selectFile("cypress/fixtures/example.json", { action: "drag-drop" })
+      .should(function ($input) {
+        // console.log($input)
+        expect($input[0].files[0].name).to.equal("example.json");
+      });
+  });
 
-            cy.get('.success').should('be.visible')
+  it("seleciona um arquivo utilizando uma fixture para a qual foi dada um alias", function () {
+    cy.fixture("example.json").as("sampleFile");
+    cy.get('input[type="file"]')
+      .selectFile("@sampleFile")
+      .should(function ($input) {
+        // console.log($input)
+        expect($input[0].files[0].name).to.equal("example.json");
+      });
+  });
 
-    })
+  it("verifica que a política de privacidade abre em outra aba sem a necessidade de um clique", function () {
+    cy.get("#privacy a").should("have.attr", "target", "_blank");
+  });
 
-        it('seleciona um produto (Mentoria) por seu texto',function(){
+  it("acessa a página da política de privacidade removendo o target e então clicando no link", function () {
+    // cy.get('#privacy a').click()
+    cy.get("#privacy a").invoke("removeAttr", "target").click();
 
-            cy.get('#product')
-            .select('Mentoria')
-            .should('have.value','mentoria')
-    })
+    cy.contains("Talking About Testing").should("be.visible");
+  });
 
-        it('seleciona um produto (youtube) por seu valor (value)',function(){
+  //   Utilizando o cy.clock e cy.tick nos teste
 
-            cy.get('#product')
-            .select('youtube')
-            .should('have.value', 'youtube')
+  it("Verificando a mensagem de insucesso com cy.tick e utilizando tambem cy.clock", function () {
+    cy.clock();
+    const longtext = Cypress._.repeat("abcdefghijklmnopqrstuvwxyz", 10);
 
-    })
+    cy.get("#firstName").type("vitor hugo");
+    cy.get("#lastName").type("vitoriano");
+    cy.get("#email").type("vitorianovitoriano5@gmail.com");
+    cy.get("#open-text-area").type(longtext, { delay: 0 });
+    cy.get('button[type="submit"]').click();
 
-        it('seleciona um produto (Blog) por seu índice',function() {
+    cy.get(".success").should("be.visible");
 
-            cy.get('#product')
-            .select(2)
-            .should('have.value', 'cursos')
+    cy.tick(3000);
 
-    })
+    cy.get(".success").should("not.be.visible");
+  });
 
-        it('marca o tipo de atendimento "Feedback"',function() {
-            
-            cy.get('input[type="radio"][value="feedback"]').check()
-            .should('be.checked','feedback')
+  it("exibe mensagem de erro ao submeter o formulário com um email com formatação inválida", function () {
+    cy.clock();
 
-    })
+    cy.get("#firstName").type("vitor hugo");
+    cy.get("#lastName").type("vitoriano");
+    cy.get("#email").type("vitorianovitoriano5@gmail,com");
+    cy.get("#open-text-area").type("teste");
+    cy.get('button[type="submit"]').click();
 
-        it('marca cada tipo de atendimento',function() {
-        
-            cy.get('input[type="radio"]')
-            .should('have.length', 3)
-            .each(function($radio) {
-                cy.wrap($radio).check()
-                cy.wrap($radio).should('be.checked')
+    cy.get(".error").should("be.visible");
 
-            })
+    cy.tick(3000);
 
-    })
+    cy.get(".error").should("not.be.visible");
+  });
 
-        it('marca ambos checkboxes, depois desmarca o último', function() {
+  it("exibe e oculta as mensagens de sucesso e erro usando .invoke()", () => {
+    cy.get(".success")
+      .should("not.be.visible")
+      .invoke("show")
+      .should("be.visible")
+      .and("contain", "Mensagem enviada com sucesso.")
+      .invoke("hide")
+      .should("not.be.visible");
+    cy.get(".error")
+      .should("not.be.visible")
+      .invoke("show")
+      .should("be.visible")
+      .and("contain", "Valide os campos obrigatórios!")
+      .invoke("hide")
+      .should("not.be.visible");
+  });
 
-            cy.get('input[type="checkbox"]')
-            .check()
-            .should('be.checked')
-            .last()
-            .uncheck() 
-            .should("not.be.checked") 
+  it("preenche o campo da área de texto usando o comando invoke", () => {
+    cy.get("#open-text-area").invoke("val", "Um texto qualquer");
+  });
 
+  it("faz uma requisição HTTP", () => {
+    cy.request("https://cac-tat-v3.s3.eu-central-1.amazonaws.com/index.html")
+      .as("getRequest")
+      .its("status")
+      .should("be.equal", 200);
 
-    })
+    cy.get("@getRequest").its("statusText").should("be.equal", "OK");
+    cy.get("@getRequest").its("body").should("include", "CAC TAT");
+  });
 
-        it('exibe mensagem de erro quando o telefone se torna obrigatório mas não é preenchido antes do envio do formulário', function(){
+  it("Encontrando Gato na aplicação e fazendo ele aparecer", () => {
+    cy.get("#cat").invoke("show").should("be.visible");
+    // .invoke("hide")
+    // .should("not.be.visible");
+  });
 
-            // cy.get('input[type="checkbox"][value="phone"]')
-            cy.get('#phone-checkbox').click()
-            .check()
-            cy.contains('button','Enviar').click()
-            cy.get('.error').should('be.visible')
-
-    })
-        it('seleciona um arquivo da pasta fixtures',function() {
-
-            // cy.get('input[type="file"]#file-upload')
-            cy.get('input[type="file"]')
-            .should('not.have.value')
-            .selectFile('cypress/fixtures/example.json')
-            .should(function($input) {
-                // console.log($input)
-            expect($input[0].files[0].name).to.equal('example.json')
-            })
-            
-        })
-
-        it('seleciona um arquivo simulando um drag-and-drop',function() {
-
-            cy.get('input[type="file"]')
-            .should('not.have.value')
-            .selectFile('cypress/fixtures/example.json', {action: 'drag-drop'})
-            .should(function($input) {
-                // console.log($input)
-            expect($input[0].files[0].name).to.equal('example.json')
-            })
-        })
-
-        it('seleciona um arquivo utilizando uma fixture para a qual foi dada um alias', function() {
-
-          cy.fixture('example.json').as('sampleFile')
-          cy.get('input[type="file"]')
-            .selectFile('@sampleFile')
-            .should(function($input) {
-                // console.log($input)
-            expect($input[0].files[0].name).to.equal('example.json')
-            })
-        })
-
-        it('verifica que a política de privacidade abre em outra aba sem a necessidade de um clique', function() {
-
-            cy.get('#privacy a').should('have.attr', 'target', '_blank')
-
-        })
-
-        it('acessa a página da política de privacidade removendo o target e então clicando no link', function() {
-        
-            // cy.get('#privacy a').click()
-            cy.get('#privacy a')
-            .invoke('removeAttr','target')
-            .click()
-
-            cy.contains('Talking About Testing').should('be.visible')
-
-        })
-
-     
-        
-})
+  it.only("Trocando o titulo e Subtitulo da aplicação para CAT TAT", () => {
+    cy.get("#title")
+      .invoke("text", "VITOR TAT");
+    cy.get('#subtitle')
+      .invoke('text', 'HUGO CAC')
+  });
+});
